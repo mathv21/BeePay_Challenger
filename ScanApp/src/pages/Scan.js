@@ -1,11 +1,12 @@
 // |> Importando Dependencias
 import React, { useState, useEffect} from 'react';
-import { View, Text, StyleSheet, Image, AsyncStorage, Alert} from 'react-native';
+import { View, Text, StyleSheet, Image, AsyncStorage, Alert, Button} from 'react-native';
 import { RectButton, TouchableOpacity} from 'react-native-gesture-handler';
 import {BarCodeScanner} from 'expo-barcode-scanner'
 import axios from 'axios';
 // |> importando Imagens
 import CodeBar from '../assets/CodeBar.png';
+import { set } from 'react-native-reanimated';
 
 
 export default function Scan({navigation}){
@@ -25,17 +26,18 @@ export default function Scan({navigation}){
 
     const handleBarCodeScanned = async ({ data }) => {
         
-        setScanned(true);
+        await setScanned(true);
 
         const api = await (axios.get(`https://api.beepayapp.com.br/api/get-produto?mercado_id=6&codigo=${data}`,{headers:{'Authorization':`Bearer ${'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6Ijg4MjRkM2NkNTU1NmUxNWNjZGFmZWJhMDkzYjA2MjdlMDc0YjQ1MzVkNmIwMWQyMGZiZTI1YmViYzcwMmE4NjkyZmEwNGI1NDI1MDFjMDBlIn0.eyJhdWQiOiI0IiwianRpIjoiODgyNGQzY2Q1NTU2ZTE1Y2NkYWZlYmEwOTNiMDYyN2UwNzRiNDUzNWQ2YjAxZDIwZmJlMjViZWJjNzAyYTg2OTJmYTA0YjU0MjUwMWMwMGUiLCJpYXQiOjE1OTE3NDU0MDIsIm5iZiI6MTU5MTc0NTQwMiwiZXhwIjoxNjIzMjgxNDAyLCJzdWIiOiIyIiwic2NvcGVzIjpbXX0.zhLEU-zu4-7m8APwlAdqQMhDRi7ksxaZM3tflGOZ7hvM-Ykh6rl5FSIc0SWFmzGUExF6Fo9CURC4QClxuW_CuHjMkm0H71lH5tWUpNBmz1PGYQgcqd6_1s5maQRSu1_QbhtpvbdhkndatK8ExECQsHwcbMguIka8imJeuQkvnJfj6qa8jM3gRVRg5lNfJC9KjpxnJR1r56wdMQ8cFo6bR2Gb-WLUg-bcNL1XJYgHm31HH2qyI_Jg1qjAR8QpE3YyE4eQyOYYNxT0gnqUuDEHW71FBAn1TQW5u8_1THOjsZbPYISZHYezwVidighauqmjDjf5XJMZJOCG5rHhlVX4hTiyO5JVQ0ARMccQylZzs4BCnzegtmbJlXCAXFdNsQCn19I7kBh9595Uw1CC4CeUiRoLgZV1-SDkHQ4cF35A6jaLYcrXFef9_41gnDVbjhS0ojLkTuQD93Aktm2wYxVzn8lTjwF5z9yCXJ-jK_8OA_UTMxDF-fuvvYAJah20t6brm1tXgq5A4AlVyPmBTOPs3uQwpPLmqXDEiRRCSrwo_yV0plwGwgynz_kmZvmn7_VzxgpTYtECZ3lGEt_iRnJEfmHknqRqUIJGO03hzZl9b4vE6VSZDmOdONK-Z74NW4gPq7aoX0Ms2ZQ3NqVlZwBE0SXX-QgWrXNSZflbCX-kViU'}`}}, '/Cart'));
 
-        const  {id,codigo, descricao, valor_unitario} = api.data;
+        const  {id, codigo, descricao, valor_unitario} = api.data;
 
+    
         const value = await AsyncStorage.setItem(MY_STORAGE_KEY, JSON.stringify({
-            id: id,
-            codigo: codigo,
-            descricao: descricao,
-            valor_unitario: valor_unitario
+            id,
+            codigo,
+            descricao,
+            valor_unitario
         }));
     };
 
@@ -45,9 +47,10 @@ export default function Scan({navigation}){
 
     const handleSubmit = async () =>{
          const storage = await AsyncStorage.getItem(MY_STORAGE_KEY);
-         Alert.alert("Sucesso",storage);
-         console.log(storage)
-        await navigation.navigate('Carrinho');
+         if(storage != false ){
+            await navigation.navigate('Produtos');
+            Alert.alert("Sucesso","Produto Adicionado ao seus items");
+         }
     }
 
     if(appPermission == null){
@@ -76,7 +79,7 @@ export default function Scan({navigation}){
                 </RectButton>
                 
                 <RectButton onPress={handleSubmit} style={styles.inputSubmit}>
-                    <Text style={styles.inputSubmitTxt}>Enviar pro Carrinho</Text>
+                    <Text style={styles.inputSubmitTxt}>Adicionar a Lista</Text>
                 </RectButton>
 
             </View>
@@ -131,7 +134,6 @@ const styles = StyleSheet.create({
 
  
    inputScan:{
-        top: 220,
         alignItems: "center",
         backgroundColor: "#F32F56",
         width: 300,
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
        width: 300,
        alignItems: "center",
        left: 38,
-       bottom: 100,
+       bottom: 30,
    },
    
    inputSubmit:{
